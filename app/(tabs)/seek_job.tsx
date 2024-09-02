@@ -1,100 +1,46 @@
-import { Text, View, TouchableOpacity, TextInput, FlatList, Pressable, ScrollView } from 'react-native';
+import { Text, View, TouchableOpacity, TextInput, FlatList, Pressable, ScrollView, Image, RefreshControl } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useState } from 'react';
-
-type Job = {
-  id: number;
-  companyName: string;
-  position: string;
-  description: string;
-  salary: string;
-  logoUrl: string;
-  type: 'contractor' | 'part-time' | 'full-time';
-  createdAt: number;
-}
-
-const request = async () => {
-  const url = 'https://jobs-from-remoteok.p.rapidapi.com/';
-  const options = {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': 'f509811ea8mshfe6b98dc3626c8fp1acfe7jsnbe0e7327bea0',
-      'x-rapidapi-host': 'jobs-from-remoteok.p.rapidapi.com'
-    }
-  };
-
-  try {
-    const response = await fetch(url, options);
-    const result = await response.text();
-    console.log(result);
-  } catch (error) {
-    console.error(error);
-  }
-};
+import { useEffect, useState } from 'react';
+import { useGlobalContext } from '@/hooks/useGlobalContext';
+import { fetchJobs, logout } from '@/lib/api';
+import { Job } from '@/lib/type';
 
 export default function HomeScreen() {
   // request();
-  const popularJobs: Job[] = [
-    {
-      id: 0,
-      companyName: 'Google',
-      position: 'React Developer',
-      description: '',
-      salary: '100$ ~ 200$',
-      logoUrl: '',
-      type: 'contractor',
-      createdAt: Date.now(),
-    },
-    {
-      id: 1,
-      companyName: 'MicroSoft',
-      position: 'Software enginer',
-      description: '',
-      salary: '100$ ~ 200$',
-      logoUrl: '',
-      type: 'full-time',
-      createdAt: Date.now()
-    },
-  ];
-
-  const recentJobs: Job[] = [
-    {
-      id: 0,
-      companyName: 'Google',
-      position: 'React Developer',
-      description: '',
-      salary: '100$ ~ 200$',
-      logoUrl: '',
-      type: 'contractor',
-      createdAt: Date.now(),
-    },
-    {
-      id: 1,
-      companyName: 'MicroSoft',
-      position: 'Software enginer',
-      description: '',
-      salary: '100$ ~ 200$',
-      logoUrl: '',
-      type: 'full-time',
-      createdAt: Date.now()
-    }
-  ];
-
   const [query, setQuery] = useState('');
+  const [popularJobs, setPopularJobs] = useState<Job[]>([]);
+  const [recentJobs, setRecentJobs] = useState<Job[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const { user, setUser } = useGlobalContext();
+
+  useEffect(() => {
+    fetchJobs().then(jobs => {
+      console.log('###', jobs);
+      setPopularJobs(jobs);
+      setRecentJobs(jobs);
+    });
+  }, []);
+
+  const url = "https://cloud.appwrite.io/v1/storage/buckets/66ba6635002420111d5c/files/66c5e2730032644c52d2/view?project=66ba6453000fa1102e8e&mode=admin";
 
   return (
     <SafeAreaView className='h-full px-5 bg-gray-100'>
       {/* header */}
       <View className='flex-row items-center justify-between'>
-        <Ionicons name="menu" size={25} />
+        <TouchableOpacity className='ml-1' onPress={async () => {
+          await logout();
+          setUser(null);
+        }}>
+          <Ionicons name="log-in-outline" size={25} />
+        </TouchableOpacity>
         <Text className='rounded-full bg-red-300 w-10 h-10 text-white text-center'></Text>
       </View>
 
       <View>
-        <Text className='mt-2 text-lg'>Hello zanqwq</Text>
+        <Text className='mt-2 text-lg'>{`Hello ${user?.name}`}</Text>
         <Text className='mt-2 mb-3 text-2xl font-bold'>Find your remote job here!</Text>
       </View>
 
@@ -128,6 +74,8 @@ export default function HomeScreen() {
         ))}
       </View>
 
+      {/* <RefreshControl refreshing={refreshing} /> */}
+
       <View className='flex-row justify-between items-center'>
         <Text className='text-lg font-semibold'>Popular Job</Text>
         <TouchableOpacity onPress={() => {
@@ -141,11 +89,11 @@ export default function HomeScreen() {
         <FlatList
           className='mt-2 h-1'
           data={popularJobs}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.$id}
           horizontal
-          renderItem={({ item: { id, companyName, position, salary } }) => (
+          renderItem={({ item: { $id, companyName, position, salary, logoUrl } }) => (
             <Pressable onPress={() => {
-              router.push(`detail/${id}`);
+              router.push(`detail/${$id}`);
             }}>
               {(data) => (
                 <View
@@ -155,7 +103,7 @@ export default function HomeScreen() {
                   }
                 >
                   <View className='items-start'>
-                    <Text className="w-[50] h-[50] bg-gray-100 rounded-lg"></Text>
+                    <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
                     <Text className='text-xs text-gray-400 mt-1'>{companyName}</Text>
                     <Text className='text-lg'>{position}</Text>
                     <Text className='text-xs text-yellow-500'>{salary}</Text>
@@ -180,16 +128,16 @@ export default function HomeScreen() {
       <FlatList
         data={recentJobs}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        renderItem={({item: { logoUrl, position, companyName, type, $id } }) => (
           <Pressable onPress={() => {
-            router.push(`/detail/${item.id}`)
+            router.push(`/detail/${$id}`)
           }}>
             {({ pressed }) => (
               <View className={`w-full h-20 ${pressed ? 'bg-indigo-600': 'bg-gray-50'} mt-5 rounded-3xl shadow-lg flex-row items-center p-5`}>
-                <View className='bg-gray-100 w-[50] h-[50] rounded-xl shadow-lg'></View>
-                <View className='ml-2'>
-                  <Text className='font-bold text-lg'>{item.position}</Text>
-                  <Text className='text-sm text-gray-300'>{item.type}</Text>
+                <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
+            <View className='ml-2'>
+                  <Text className='font-bold text-lg'>{position}</Text>
+                  <Text className='text-sm text-gray-300'>{companyName}</Text>
                 </View>
               </View>
             )}

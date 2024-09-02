@@ -8,6 +8,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Job } from '@/lib/type';
+import Form from '@/components/Form';
 
 export default function TabTwoScreen() {
   const [form, setForm] = useState<Job>({
@@ -26,7 +28,10 @@ export default function TabTwoScreen() {
 
   return (
     <SafeAreaView className='p-5'>
-      <Text className='text-xl'>Company name</Text>
+      <Form
+        form={form}
+        onFieldChange={(name, value) => {}}
+      />
     </SafeAreaView>
   );
 }

@@ -1,10 +1,23 @@
-import { View, Text } from 'react-native'
+import { View, Text, TextInput } from 'react-native'
 import React from 'react'
 
-const Form = () => {
+type FormProps = {
+  form: Record<string, any>;
+  onFieldChange: (name: string, value: any) => void;
+};
+
+const Form = (props: FormProps) => {
   return (
     <View>
-      <Text>Form</Text>
+      {Object.entries(props.form).map(([name, value]) =>
+        <View>
+          <Text>{name}</Text>
+          <TextInput
+            value={value}
+            onChangeText={value => props.onFieldChange(name, value)}
+          />
+        </View>
+      )}
     </View>
   )
 }

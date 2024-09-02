@@ -3,10 +3,13 @@ import React, { useState } from 'react'
 import logo from '../../assets/images/logo.png';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchCurrentUser, signIn } from '@/lib/api';
+import { SignInForm } from '@/lib/type';
+import { useGlobalContext } from '@/hooks/useGlobalContext';
 
 const sign_in = () => {
-  console.log('@@@', logo);
-  const [form, setForm] = useState({ email: '', pwd: '' });
+  const [form, setForm] = useState<SignInForm>({ email: '', pwd: '' });
+  const { user, setUser } = useGlobalContext();
 
   return (
     <SafeAreaView>
@@ -25,9 +28,17 @@ const sign_in = () => {
           <TextInput value={form.pwd} onChangeText={(pwd) => setForm({ ...form, pwd })} secureTextEntry />
         </View>
 
-        <Pressable className='w-full' onPress={() => {
+        <Pressable className='w-full' onPress={async () => {
           if (!form.email || !form.pwd) {
             Alert.alert('Please enter email and password');
+            return;
+          }
+          try {
+            await signIn(form);
+            const currentUser = await fetchCurrentUser();
+            setUser(currentUser);
+          } catch (e) {
+            Alert.alert(e.message);
             return;
           }
           router.push('/seek_job');
