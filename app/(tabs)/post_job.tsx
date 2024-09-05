@@ -1,22 +1,14 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform, Text } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Job } from '@/lib/type';
 import Form from '@/components/Form';
+import { Text } from 'react-native';
 
 export default function TabTwoScreen() {
   const [form, setForm] = useState<Job>({
     companyName: '',
     position: '',
-    employmenType: 'full-time',
-    primaryTags: [],
+    employmentType: 'full-time',
     logoUrl: '',
     jobDescription: '',
     about: '',
@@ -26,25 +18,29 @@ export default function TabTwoScreen() {
     contact: '',
   });
 
+  const employmentTypeOptions = [
+    'full-time', 'part-time', 'contractor'
+  ].map((value) => ({ label: value, value }));
+
   return (
     <SafeAreaView className='p-5'>
+      {/* <Text>{JSON.stringify(form)}</Text> */}
       <Form
         form={form}
-        onFieldChange={(name, value) => {}}
+        onFieldChange={(name, value) => {
+          setForm({ ...form, [name]: value });
+        }}
+        config={{
+          // companyName: { required: true },
+          employmentType: { type: 'select', options: employmentTypeOptions },
+          logoUrl: { title: 'Logo' },
+          jobDescription: { type: 'textarea' },
+          about: { type: 'textarea' },
+          qualification: { type: 'textarea' },
+          responsibilities: { type: 'textarea' },
+          benifits: { type: 'textarea' }
+        }}
       />
     </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+};

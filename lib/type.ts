@@ -17,7 +17,7 @@ export type User = {
 export type Job = {
   companyName: string;
   position: string;
-  employmenType: 'full-time' | 'part-time' | 'contractor';
+  employmentType: 'full-time' | 'part-time' | 'contractor';
   logoUrl?: string;
   about?: string;
   qualification?: string;
