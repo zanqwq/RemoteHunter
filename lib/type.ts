@@ -1,3 +1,6 @@
+import { DocumentPickerAsset } from "expo-document-picker";
+import { Models } from "react-native-appwrite";
+
 export type SignInForm = {
   email: string;
   pwd: string;
@@ -14,19 +17,37 @@ export type User = {
   cvUrl: string;
 };
 
-export type Job = {
+export type JobForm = {
   companyName: string;
   position: string;
   employmentType: 'full-time' | 'part-time' | 'contractor';
-  logoUrl?: string;
+  logo: DocumentPickerAsset | null;
   about?: string;
-  qualification?: string;
+  qualifications?: string;
   responsibilities?: string;
   benifits?: string;
   contact?: string;
   creator?: string;
   salary?: string;
-  [x: string]: any;
+};
+
+export type JobDocument = {
+  companyName: string;
+  position: string;
+  employmentType: 'full-time' | 'part-time' | 'contractor';
+  logoUrl?: URL | null;
+  about?: string;
+  qualifications?: string;
+  responsibilities?: string;
+  benifits?: string;
+  contact?: string;
+  creator?: string;
+  salary?: string;
+} & Partial<Models.Document>;
+
+export type JobQuery = {
+  name?: string;
+  type?: 'recent' | 'popular';
 };
 
 export type GlobalContext = {

@@ -1,5 +1,6 @@
 import { Account, Avatars, Client, Databases, ID, Query, Storage } from "react-native-appwrite";
-import { Job, SignInForm, SignUpForm, User } from "./type";
+import { JobDocument, JobQuery, SignInForm, SignUpForm, User } from "./type";
+import { DocumentPickerAsset } from "expo-document-picker";
 
 const endpoint = 'https://cloud.appwrite.io/v1';
 const projectId = '66ba6453000fa1102e8e';
@@ -50,8 +51,24 @@ export const fetchCurrentUser = async (): Promise<User> => {
   return res.documents[0] as any;
 };
 
-export const fetchJobs = async (): Promise<Job[]> => {
-  const res = await databaseService.listDocuments(databaseId, jobCollectionId)
+export const fetchJobs = async (queries: string[]): Promise<JobDocument[]> => {
+  const res = await databaseService.listDocuments(databaseId, jobCollectionId, queries);
   return res.documents as any;
 };
 
+export const uploadFile = async (file: DocumentPickerAsset) => {
+  const uploadedFile = await storageService.createFile(storageBucketId, ID.unique(), {
+    name: file.name,
+    size: file.size || 0,
+    type: file.mimeType || '',
+    uri: file.uri
+  });
+  const url = storageService.getFileView(storageBucketId, uploadedFile.$id);
+  return { url, uploadedFile };
+};
+
+export const postJob = async (job: JobDocument) => {
+  console.log('postJob', job);
+  const res = await databaseService.createDocument(databaseId, jobCollectionId, ID.unique(), job);
+  return res;
+};

@@ -6,25 +6,30 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useGlobalContext } from '@/hooks/useGlobalContext';
 import { fetchJobs, logout } from '@/lib/api';
-import { Job } from '@/lib/type';
+import { JobDocument } from '@/lib/type';
+import { Query } from 'react-native-appwrite';
 
 export default function HomeScreen() {
   // request();
   const [query, setQuery] = useState('');
-  const [popularJobs, setPopularJobs] = useState<Job[]>([]);
-  const [recentJobs, setRecentJobs] = useState<Job[]>([]);
+  const [popularJobs, setPopularJobs] = useState<JobDocument[]>([]);
+  const [recentJobs, setRecentJobs] = useState<JobDocument[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const { user, setUser } = useGlobalContext();
 
+  console.log('seek_job');
   useEffect(() => {
-    fetchJobs().then(jobs => {
-      console.log('###', jobs);
+    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(4)]).then(jobs => {
+      console.log('@@@ poluar jobs', jobs);
       setPopularJobs(jobs);
       setRecentJobs(jobs);
     });
-  }, []);
 
-  const url = "https://cloud.appwrite.io/v1/storage/buckets/66ba6635002420111d5c/files/66c5e2730032644c52d2/view?project=66ba6453000fa1102e8e&mode=admin";
+    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(4)]).then(jobs => {
+      console.log('@@@ recent jobs', jobs);
+      setRecentJobs(jobs);
+    });
+  }, []);
 
   return (
     <SafeAreaView className='h-full px-5 bg-gray-100'>
@@ -74,76 +79,77 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* <RefreshControl refreshing={refreshing} /> */}
 
-      <View className='flex-row justify-between items-center'>
-        <Text className='text-lg font-semibold'>Popular Job</Text>
-        <TouchableOpacity onPress={() => {
-          router.push('/search/' + JSON.stringify({ type: 'popular' }));
-        }}>
-          <Text className="text-gray-400">Show all</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} />}>
+        <View className='flex-row justify-between items-center'>
+          <Text className='text-lg font-semibold'>Popular Job</Text>
+          <TouchableOpacity onPress={() => {
+            router.push('/search/' + JSON.stringify({ type: 'popular' }));
+          }}>
+            <Text className="text-gray-400">Show all</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View className='w-full h-[150]'>
-        <FlatList
-          className='mt-2 h-1'
-          data={popularJobs}
-          keyExtractor={(item) => item.$id}
-          horizontal
-          renderItem={({ item: { $id, companyName, position, salary, logoUrl } }) => (
-            <Pressable onPress={() => {
-              router.push(`detail/${$id}`);
-            }}>
-              {(data) => (
-                <View
-                  className={`w-[300] h-full p-5 mr-3 rounded-2xl
-                    ${data.pressed ? 'bg-indigo-600' : 'bg-gray-50'}
-                    flex-row justify-between`
-                  }
-                >
-                  <View className='items-start'>
-                    <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
-                    <Text className='text-xs text-gray-400 mt-1'>{companyName}</Text>
-                    <Text className='text-lg'>{position}</Text>
-                    <Text className='text-xs text-yellow-500'>{salary}</Text>
+        <View className='w-full h-[150]'>
+          <FlatList
+            className='mt-2 h-1'
+            data={popularJobs}
+            keyExtractor={(item) => item.$id}
+            horizontal
+            renderItem={({ item: { $id, companyName, position, salary, logoUrl } }) => (
+              <Pressable onPress={() => {
+                router.push(`detail/${$id}`);
+              }}>
+                {(data) => (
+                  <View
+                    className={`w-[300] h-full p-5 mr-3 rounded-2xl
+                      ${data.pressed ? 'bg-indigo-600' : 'bg-gray-50'}
+                      flex-row justify-between`
+                    }
+                  >
+                    <View className='items-start'>
+                      <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
+                      <Text className='text-xs text-gray-400 mt-1'>{companyName}</Text>
+                      <Text className='text-lg'>{position}</Text>
+                      <Text className='text-xs text-yellow-500'>{salary}</Text>
+                    </View>
+                    <Ionicons name="heart" size={25} color='#faa' />
                   </View>
-                  <Ionicons name="heart" size={25} color='#faa' />
+                )}
+              </Pressable>
+            )}
+          />
+        </View>
+
+        <View className='flex-row justify-between items-center mt-5'>
+          <Text className='text-lg font-semibold'>Recent Job</Text>
+          <TouchableOpacity onPress={() => {
+            router.push('/search/' + JSON.stringify({ type: 'recent' }));
+          }}>
+            <Text className="text-gray-400">Show all</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={recentJobs}
+          keyExtractor={(item) => item.$id}
+          renderItem={({item: { logoUrl, position, companyName, $id } }) => (
+            <Pressable onPress={() => {
+              router.push(`/detail/${$id}`)
+            }}>
+              {({ pressed }) => (
+                <View className={`w-full h-20 ${pressed ? 'bg-indigo-600': 'bg-gray-50'} mt-5 rounded-3xl shadow-lg flex-row items-center p-5`}>
+                  <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
+                  <View className='ml-2'>
+                    <Text className='font-bold text-lg'>{position}</Text>
+                    <Text className='text-sm text-gray-300'>{companyName}</Text>
+                  </View>
                 </View>
               )}
             </Pressable>
           )}
         />
-      </View>
-
-      <View className='flex-row justify-between items-center mt-5'>
-        <Text className='text-lg font-semibold'>Recent Job</Text>
-        <TouchableOpacity onPress={() => {
-          router.push('/search/' + JSON.stringify({ type: 'recent' }));
-        }}>
-          <Text className="text-gray-400">Show all</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={recentJobs}
-        keyExtractor={(item) => item.id}
-        renderItem={({item: { logoUrl, position, companyName, type, $id } }) => (
-          <Pressable onPress={() => {
-            router.push(`/detail/${$id}`)
-          }}>
-            {({ pressed }) => (
-              <View className={`w-full h-20 ${pressed ? 'bg-indigo-600': 'bg-gray-50'} mt-5 rounded-3xl shadow-lg flex-row items-center p-5`}>
-                <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
-            <View className='ml-2'>
-                  <Text className='font-bold text-lg'>{position}</Text>
-                  <Text className='text-sm text-gray-300'>{companyName}</Text>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        )}
-      />
+      </ScrollView>
     </SafeAreaView>
   );
 }

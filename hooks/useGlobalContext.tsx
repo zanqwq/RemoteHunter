@@ -15,7 +15,6 @@ export const GlobalContextProvider = ({ children }) => {
   const [user, setUser] = useState<GlobalContextType['user']>(null);
   useEffect(() => {
     fetchCurrentUser().then(currentUser => {
-      console.log('@@@', currentUser);
       setUser(currentUser);
     }).catch(e => {
       setUser(null);
