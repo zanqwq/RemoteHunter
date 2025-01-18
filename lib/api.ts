@@ -51,9 +51,9 @@ export const fetchCurrentUser = async (): Promise<User> => {
   return res.documents[0] as any;
 };
 
-export const fetchJobs = async (queries: string[]): Promise<JobDocument[]> => {
+export const fetchJobs = async (queries: string[]): Promise<{ jobs: JobDocument[]; total: number; }> => {
   const res = await databaseService.listDocuments(databaseId, jobCollectionId, queries);
-  return res.documents as any;
+  return { jobs: res.documents, total: res.total };
 };
 
 export const uploadFile = async (file: DocumentPickerAsset) => {
@@ -68,7 +68,6 @@ export const uploadFile = async (file: DocumentPickerAsset) => {
 };
 
 export const postJob = async (job: JobDocument) => {
-  console.log('postJob', job);
   const res = await databaseService.createDocument(databaseId, jobCollectionId, ID.unique(), job);
   return res;
 };

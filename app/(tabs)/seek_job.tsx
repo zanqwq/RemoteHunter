@@ -8,6 +8,7 @@ import { useGlobalContext } from '@/hooks/useGlobalContext';
 import { fetchJobs, logout } from '@/lib/api';
 import { JobDocument } from '@/lib/type';
 import { Query } from 'react-native-appwrite';
+import JobList from '@/components/JobList';
 
 export default function HomeScreen() {
   // request();
@@ -17,16 +18,12 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { user, setUser } = useGlobalContext();
 
-  console.log('seek_job');
   useEffect(() => {
-    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(4)]).then(jobs => {
-      console.log('@@@ poluar jobs', jobs);
+    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(3)]).then(({ jobs }) => {
       setPopularJobs(jobs);
-      setRecentJobs(jobs);
     });
 
-    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(4)]).then(jobs => {
-      console.log('@@@ recent jobs', jobs);
+    fetchJobs([Query.orderDesc('$createdAt'), Query.limit(3)]).then(({ jobs }) => {
       setRecentJobs(jobs);
     });
   }, []);
@@ -91,34 +88,7 @@ export default function HomeScreen() {
         </View>
 
         <View className='w-full h-[150]'>
-          <FlatList
-            className='mt-2 h-1'
-            data={popularJobs}
-            keyExtractor={(item) => item.$id}
-            horizontal
-            renderItem={({ item: { $id, companyName, position, salary, logoUrl } }) => (
-              <Pressable onPress={() => {
-                router.push(`detail/${$id}`);
-              }}>
-                {(data) => (
-                  <View
-                    className={`w-[300] h-full p-5 mr-3 rounded-2xl
-                      ${data.pressed ? 'bg-indigo-600' : 'bg-gray-50'}
-                      flex-row justify-between`
-                    }
-                  >
-                    <View className='items-start'>
-                      <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
-                      <Text className='text-xs text-gray-400 mt-1'>{companyName}</Text>
-                      <Text className='text-lg'>{position}</Text>
-                      <Text className='text-xs text-yellow-500'>{salary}</Text>
-                    </View>
-                    <Ionicons name="heart" size={25} color='#faa' />
-                  </View>
-                )}
-              </Pressable>
-            )}
-          />
+          <JobList jobs={popularJobs} className='mt-2 h-1' horizontal />
         </View>
 
         <View className='flex-row justify-between items-center mt-5'>
@@ -130,25 +100,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={recentJobs}
-          keyExtractor={(item) => item.$id}
-          renderItem={({item: { logoUrl, position, companyName, $id } }) => (
-            <Pressable onPress={() => {
-              router.push(`/detail/${$id}`)
-            }}>
-              {({ pressed }) => (
-                <View className={`w-full h-20 ${pressed ? 'bg-indigo-600': 'bg-gray-50'} mt-5 rounded-3xl shadow-lg flex-row items-center p-5`}>
-                  <Image className='w-[50] h-[50] rounded-xl' src={logoUrl} resizeMode='contain' />
-                  <View className='ml-2'>
-                    <Text className='font-bold text-lg'>{position}</Text>
-                    <Text className='text-sm text-gray-300'>{companyName}</Text>
-                  </View>
-                </View>
-              )}
-            </Pressable>
-          )}
-        />
+        <JobList jobs={recentJobs} />
       </ScrollView>
     </SafeAreaView>
   );

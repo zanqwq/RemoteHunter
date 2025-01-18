@@ -1,12 +1,21 @@
+import { fetchJobs } from "@/lib/api";
+import { JobDocument } from "@/lib/type";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, Pressable, Text, View } from "react-native";
+import { Query } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Detail = () => {
-  const { id = 0 } = useLocalSearchParams();
+  const { id = '' } = useLocalSearchParams();
   const [activeSection, setActiveSection] = useState('About');
+  const [job, setJob] = useState<JobDocument>();
+  useEffect(() => {
+    fetchJobs([Query.equal('$id', id)]).then((res) => {
+      setJob(res.jobs[0]);
+    });
+  }, [id]);
   return (
     <View className='w-full h-full bg-gray-100'>
       <Stack.Screen
@@ -24,8 +33,9 @@ const Detail = () => {
       />
 
       <View className='h-[200] items-center py-10'>
-        <View className='w-[50] h-[50] bg-gray-200 rounded-md shadow-xl'></View>
-        <Text className='text-lg font-bold mt-5'>React Native Developer</Text>
+        {/* <View className='w-[50] h-[50] bg-gray-200 rounded-md shadow-xl'></View> */}
+        <Image className='w-[50] h-[50] rounded-lg shadow-md' src={job?.logoUrl?.toString()} resizeMode='contain' />
+        <Text className='text-lg font-bold mt-5'>{job?.position}</Text>
       </View>
 
       <View className='flex-row h-[100] w-full justify-center'>
@@ -38,6 +48,12 @@ const Detail = () => {
             )}
           </Pressable>
         ))}
+      </View>
+
+      <View className='mx-4'>
+        {activeSection === 'About' && <Text>{job?.about}</Text>}
+        {activeSection === 'Qualifications' && <Text>{job?.qualifications}</Text>}
+        {activeSection === 'Responsibilities' && <Text>{job?.responsibilities}</Text>}
       </View>
 
       <View className='flex-row px-5 pb-3 absolute bottom-0 bg-gray-100 items-center gap-3 border-t-2 border-red-300 border-solid'>

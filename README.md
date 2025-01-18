@@ -51,8 +51,8 @@ Join our community of developers creating universal apps.
 
 
 # TODO
-- [ ] seek page refreshing
-- [ ] search page
+- [x] seek page refreshing
+- [x] search page
 - [ ] detail page: markdown support
 - [ ] external job use fastapi
 - [ ] user: applied, liked, settings
